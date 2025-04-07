@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Trò chơi đố vui</title>
+  <style>
+    body {
+      display: grid;
+      justify-content: center;
+      align-items: center;
+      min-height: 75vh;
+      margin: 0;
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    #quiz {
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+      max-width: 650px;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    #score {
+
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #333;
+      margin-top: 70px;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .question-container {
+      font-size: 1.2em;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #222;
+    }
+
+    .options button {
+      display: block;
+      margin: 10px 0;
+      padding: 12px 18px;
+      width: 100%;
+      max-width: 100%;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
+      background-color: #f1f1f1;
+      cursor: pointer;
+      transition: background-color 0.25s, transform 0.25s;
+    }
+
+    .options button:hover {
+      background-color: #e0e0e0;
+    }
+
+    .options button.correct {
+      background-color: #4CAF50;
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .options button.wrong {
+      background-color: #f44336;
+      color: white;
+      transform: scale(0.95);
+    }
+
+    .feedback {
+      font-weight: bold;
+      margin-top: 15px;
+      font-style: italic;
+      color: #555;
+    }
+
+    #nextBtn {
+      margin-top: 25px;
+      padding: 12px 24px;
+      font-size: 1em;
+      background-color: #007bff;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.25s;
+    }
+
+    #nextBtn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Hiển thị điểm -->
+  <div id="score">Điểm của bạn: 0</div>
+  <div id="quiz">
+    <div id="question" class="question-container"></div>
+    <div id="options" class="options"></div>
+    <div id="feedback" class="feedback"></div>
+    <button id="nextBtn" style="display:none;">Câu hỏi tiếp theo</button>
+  </div>
+
+  <script>
+    // Mảng các câu hỏi
+    const questions = [
+      {
+        question: "Tên miền Top-Level Domain (TLD) là gì?",
+        options: [
+          "Phần trước dấu chấm của tên miền, thường là tên của tổ chức hoặc doanh nghiệp sở hữu",
+          "Phần sau dấu chấm của tên miền, chỉ định loại tên miền",
+          "Tên miền phổ biến như .com, .net, .org, .edu,...",
+          "Cả A và C đều đúng"
+        ],
+        answer: "Phần sau dấu chấm của tên miền, chỉ định loại tên miền",
+        hint: "Ví dụ: .com, .vn, .org là phần TLD."
+      },
+      {
+        question: "Tên miền phụ (subdomain) là gì?",
+        options: [
+          "Tên miền mà có chứa các ký tự đặc biệt như *, &, #,...",
+          "Tên miền được sử dụng để chia sẻ một Website trên nhiều máy chủ khác nhau.",
+          "Tên miền được tạo ra bên trong tên miền chính để chỉ định một khu vực cụ thể của Website.",
+          "Tất cả các phương án trên đều sai."
+        ],
+        answer: "Tên miền được tạo ra bên trong tên miền chính để chỉ định một khu vực cụ thể của Website.",
+        hint: "Ví dụ: blog.example.com là subdomain của example.com"
+      },
+      {
+        question: "Để chọn một dịch vụ hosting phù hợp, ta cần lưu ý đến những yếu tố nào?",
+        options: [
+          "Giá cả, tốc độ, bảo mật",
+          "Tên miền, giao diện, nội dung",
+          "Công nghệ, kinh nghiệm, thương hiệu",
+          "Tính năng, số lượng truy cập, chất lượng hỗ trợ"
+        ],
+        answer: "Tính năng, số lượng truy cập, chất lượng hỗ trợ",
+        hint: "Chất lượng dịch vụ ảnh hưởng lớn đến hiệu suất website."
+      },
+      {
+        question: "Web host có thể được cài đặt trên hệ điều hành nào?",
+        options: ["Windows", "Linux", "MacOS", "Tất cả các phương án đều đúng"],
+        answer: "Tất cả các phương án đều đúng",
+        hint: "Miễn là hệ điều hành hỗ trợ web server, đều có thể host."
+      },
+      {
+        question: "Loại hosting phổ biến thường được sử dụng là loại nào?",
+        options: ["Shared hosting", "VPS hosting", "Dedicated hosting", "Tất cả các phương án đều đúng"],
+        answer: "Shared hosting",
+        hint: "Loại này rẻ và phổ biến cho người mới bắt đầu."
+      },
+      {
+        question: "Trong lĩnh vực phát triển Web, SEO là cụm từ được viết tắt bởi cụm từ nào?",
+        options: [
+          "Search Engine Optimization",
+          "Site Engine Optimization",
+          "Social Engine Optimization",
+          "Search Engine Operation"
+        ],
+        answer: "Search Engine Optimization",
+        hint: "SEO giúp website xuất hiện trên Google dễ dàng hơn."
+      },
+      {
+        question: "Sử dụng từ khóa quá nhiều trên một trang Web có ảnh hưởng gì đến SEO?",
+        options: [
+          "Tốt cho SEO",
+          "Không ảnh hưởng đến SEO",
+          "Có thể làm giảm hiệu quả SEO",
+          "Làm tăng hiệu quả SEO"
+        ],
+        answer: "Có thể làm giảm hiệu quả SEO",
+        hint: "Nhồi nhét từ khóa có thể bị Google phạt."
+      },
+      {
+        question: "Tại sao phải thực hiện bảo trì Website?",
+        options: [
+          "Để tăng cường tính năng và hiệu suất của Website",
+          "Để tạo ra một giao diện mới cho Website",
+          "Để tăng doanh số bán hàng trên Website",
+          "Để tạo ra nhiều trang Web mới"
+        ],
+        answer: "Để tăng cường tính năng và hiệu suất của Website",
+        hint: "Bảo trì giúp cập nhật, sửa lỗi và tăng tốc."
+      },
+      {
+        question: "Phương thức nào thường được sử dụng để tải các tệp mã nguồn từ máy cá nhân lên Web host?",
+        options: ["FTP", "SMTP", "HTTP", "HTTPS"],
+        answer: "FTP",
+        hint: "FTP là giao thức truyền tải file phổ biến."
+      },
+      {
+        question: "Công nghệ nào giúp phân phối nội dung nhanh hơn qua nhiều máy chủ?",
+        options: [
+          "Load balancing",
+          "Server-side rendering",
+          "Caching",
+          "Content Delivery Network (CDN)"
+        ],
+        answer: "Content Delivery Network (CDN)",
+        hint: "CDN giúp đưa dữ liệu đến gần người dùng hơn."
+      },
+      {
+        question: "Lệnh Git dùng để khởi tạo một kho lưu trữ mới?",
+        options: ["git init", "git start", "git create", "git new"],
+        answer: "git init",
+        hint: "Khởi tạo kho lưu trữ Git trong thư mục hiện tại."
+      },
+      {
+        question: "Lệnh Git nào dùng để kiểm tra trạng thái?",
+        options: ["git log", "git check", "git status", "git report"],
+        answer: "git status",
+        hint: "Hiển thị thông tin các thay đổi đang có."
+      },
+      {
+        question: "Lệnh Git dùng để kết hợp hai nhánh lại với nhau?",
+        options: ["git connect", "git merge", "git join", "git link"],
+        answer: "git merge",
+        hint: "Dùng để gộp nội dung từ nhánh khác."
+      },
+      {
+        question: "Lệnh jQuery dùng để chờ tài liệu HTML tải xong trước khi thực hiện các tác vụ?",
+        options: ["$(document).ready()", "$(window).load()", "$(document).load()", "$(window).ready()"],
+        answer: "$(document).ready()",
+        hint: "Đảm bảo DOM đã sẵn sàng trước khi thao tác."
+      },
+      {
+        question: "Lệnh jQuery dùng để chọn tất cả các phần tử <div>?",
+        options: ["$(\"div\")", "$(\"#div\")", "$(\".div\")", "$div"],
+        answer: "$(\"div\")",
+        hint: "Chọn theo tên thẻ HTML."
+      },
+      {
+        question: "Lệnh jQuery dùng để lấy giá trị của thuộc tính?",
+        options: [".attr()", ".val()", ".text()", ".html()"],
+        answer: ".attr()",
+        hint: "Lấy hoặc gán thuộc tính như href, src, alt..."
+      },
+      {
+        question: "Lệnh jQuery nào dùng để thay đổi nội dung của một phần tử HTML?",
+        options: [".attr()", ".val()", ".text()", ".html()"],
+        answer: ".html()",
+        hint: "Gán hoặc lấy nội dung HTML bên trong phần tử."
+      },
+      {
+        question: "Để khai báo một mixin trong SASS, ta dùng từ khóa nào?",
+        options: ["@include", "@mixin", "@function", "@extend"],
+        answer: "@mixin",
+        hint: "Dùng để định nghĩa nhóm thuộc tính có thể tái sử dụng."
+      },
+      {
+        question: "Để thực hiện đảo ngược phương thức nào?",
+        options: ["reverse()", "invert()", "flip()", "turn()"],
+        answer: "reverse()",
+        hint: "Dùng cho mảng hoặc chuỗi để đảo thứ tự phần tử."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let questionAttemptScore = 1; // Điểm ban đầu cho mỗi câu hỏi là 1
+
+    // Hàm cập nhật hiển thị điểm
+    function updateScore() {
+      document.getElementById("score").textContent = "Điểm của bạn: " + score;
+    }
+
+    // Hàm hiển thị câu hỏi và các tùy chọn
+    function loadQuestion() {
+      questionAttemptScore = 1; // Reset điểm cho câu hỏi mới
+      const questionDiv = document.getElementById("question");
+      const optionsDiv = document.getElementById("options");
+      const feedbackDiv = document.getElementById("feedback");
+      const nextBtn = document.getElementById("nextBtn");
+
+      feedbackDiv.textContent = "";
+      nextBtn.style.display = "none";
+
+      const currentQuestion = questions[currentQuestionIndex];
+      questionDiv.textContent = currentQuestion.question;
+      optionsDiv.innerHTML = "";
+
+      // Tạo các nút lựa chọn cho câu hỏi hiện tại
+      currentQuestion.options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.addEventListener('click', (event) => checkAnswer(option, event));
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    // Hàm kiểm tra đáp án người dùng chọn
+    function checkAnswer(selectedOption, event) {
+      const currentQuestion = questions[currentQuestionIndex];
+      const feedbackDiv = document.getElementById("feedback");
+      const buttons = document.querySelectorAll("#options button");
+
+      // Vô hiệu hóa nút đã chọn
+      event.target.disabled = true;
+
+      if (selectedOption === currentQuestion.answer) {
+        // Nếu đáp án đúng
+        event.target.classList.add("correct");
+        feedbackDiv.textContent = "Chính xác!";
+        // Cộng điểm chỉ nếu chưa từng chọn sai trong câu hỏi này
+        score += questionAttemptScore;
+        updateScore();
+        // Vô hiệu hóa tất cả các nút sau khi trả lời đúng
+        buttons.forEach(btn => btn.disabled = true);
+        document.getElementById("nextBtn").style.display = "block";
+      } else {
+        // Nếu đáp án sai
+        event.target.classList.add("wrong");
+        feedbackDiv.textContent = "Sai rồi! Gợi ý: " + currentQuestion.hint;
+        // Mất điểm của câu hỏi này (sẽ không được cộng điểm dù trả lời đúng sau)
+        questionAttemptScore = 0;
+      }
+    }
+
+    // Chuyển sang câu hỏi tiếp theo
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        loadQuestion();
+      } else {
+        document.getElementById("quiz").innerHTML = "<h2>Bạn đã hoàn thành trò chơi! Điểm: " + score + "</h2>";
+      }
+    });
+
+    // Tải câu hỏi đầu tiên khi trang được mở
+    loadQuestion();
+  </script>
+</body>
+
+</html>
